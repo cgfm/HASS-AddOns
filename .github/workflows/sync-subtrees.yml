@@ -1,0 +1,77 @@
+name: Sync Add-ons (Subtree)
+
+on:
+  workflow_dispatch:
+    inputs:
+      addon:
+        description: Slug/folder to sync (e.g., komodo-core). Leave empty to sync all.
+        required: false
+  repository_dispatch:
+    types: [addon_release]
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Checkout aggregator
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Git user
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Determine scope
+        id: scope
+        shell: bash
+        run: |
+          if [[ "${{ github.event_name }}" == "repository_dispatch" ]]; then
+            # From source repo dispatch: sync just that add-on
+            echo "addon=${{ github.event.client_payload.name }}" >> $GITHUB_OUTPUT
+            echo "repo=${{ github.event.client_payload.repo }}" >> $GITHUB_OUTPUT
+            echo "ref=${{ github.event.client_payload.ref }}" >> $GITHUB_OUTPUT
+          else
+            # Manual dispatch: optional input addon, otherwise all
+            echo "addon=${{ inputs.addon }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Sync subtrees
+        shell: bash
+        env:
+          ADDON: ${{ steps.scope.outputs.addon }}
+          REPO: ${{ steps.scope.outputs.repo }}
+          REF: ${{ steps.scope.outputs.ref }}
+        run: |
+          set -euo pipefail
+
+          script=.github/scripts/sync_subtrees.sh
+          chmod +x "$script"
+          if [[ -n "${ADDON:-}" ]]; then
+            echo "Syncing single add-on: $ADDON"
+            "$script" "$ADDON" "${REPO:-}" "${REF:-}"
+          else
+            echo "Syncing all add-ons from addons.json"
+            "$script"
+          fi
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "chore(sync): update add-ons via subtree"
+          title: "Sync add-ons via subtree"
+          body: |
+            Automated update of add-ons using git subtree.
+            - Event: `${{ github.event_name }}`
+            - Add-on: `${{ steps.scope.outputs.addon }}`
+          branch: chore/sync-addons
+          delete-branch: true
+

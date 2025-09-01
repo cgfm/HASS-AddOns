@@ -1,0 +1,22 @@
+[
+  {
+    "name": "komodo-core",
+    "repo": "https://github.com/cgfm/Komodo-Core-Addon.git",
+    "ref": "export"
+  },
+  {
+    "name": "komodo-periphery",
+    "repo": "https://github.com/cgfm/Komodo-Periphery-Addon.git",
+    "ref": "export"
+  },
+  {
+    "name": "wg-easy",
+    "repo": "https://github.com/cgfm/WG-Easy-AddOn.git",
+    "ref": "export"
+  },
+  {
+    "name": "unbound",
+    "repo": "https://github.com/cgfm/Unbound-DNS-AddOn.git",
+    "ref": "export"
+  }
+]

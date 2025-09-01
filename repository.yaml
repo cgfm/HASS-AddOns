@@ -1,0 +1,4 @@
+name: "HASS Add-ons by cgfm"
+url: "https://github.com/cgfm/HASS-AddOns"
+maintainer: "cgfm"
+description: "Single repository exposing multiple add-ons via subtree sync."
