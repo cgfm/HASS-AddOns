@@ -1,0 +1,17 @@
+#include <tunables/global>
+
+profile tado-api-proxy flags=(attach_disconnected,mediate_deleted) {
+  #include <abstractions/base>
+
+  # Allow all file access
+  /** rwmlkix,
+
+  # Allow all network
+  network,
+
+  # Allow all capabilities
+  capability,
+
+  # Allow all signals
+  signal,
+}

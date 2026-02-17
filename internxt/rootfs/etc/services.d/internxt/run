@@ -1,0 +1,116 @@
+#!/usr/bin/with-contenv bashio
+# shellcheck shell=bash
+
+# Exponential backoff handling - delay restart if there were recent failures
+RESTART_COUNT_FILE="/tmp/internxt_restart_count"
+MAX_DELAY=300  # Maximum delay of 5 minutes
+
+if [[ -f "$RESTART_COUNT_FILE" ]]; then
+    RESTART_COUNT=$(cat "$RESTART_COUNT_FILE")
+    if [[ "$RESTART_COUNT" -gt 0 ]]; then
+        # Calculate delay with exponential backoff: 5, 10, 20, 40, 80, 160, 300 seconds
+        DELAY=$((5 * (2 ** (RESTART_COUNT - 1))))
+        if [[ "$DELAY" -gt "$MAX_DELAY" ]]; then
+            DELAY=$MAX_DELAY
+        fi
+        bashio::log.warning "Waiting ${DELAY} seconds before restart (attempt $((RESTART_COUNT + 1)))..."
+        sleep "$DELAY"
+    fi
+fi
+
+bashio::log.info "Starting Internxt WebDAV server..."
+
+# Read configuration
+INXT_USER=$(bashio::config 'inxt_user')
+INXT_PASSWORD=$(bashio::config 'inxt_password')
+INXT_TWOFACTORCODE=$(bashio::config 'inxt_twofactorcode')
+INXT_OTPTOKEN=$(bashio::config 'inxt_otptoken')
+WEBDAV_PORT=$(bashio::config 'webdav_port')
+WEBDAV_PROTOCOL=$(bashio::config 'webdav_protocol')
+LOG_LEVEL=$(bashio::config 'log_level')
+
+# Check required configuration
+if bashio::config.is_empty 'inxt_user'; then
+    bashio::exit.nok "Internxt username/email is required!"
+fi
+
+if bashio::config.is_empty 'inxt_password'; then
+    bashio::exit.nok "Internxt password is required!"
+fi
+
+# Set environment variables for the Internxt WebDAV Docker image
+export INXT_USER="${INXT_USER}"
+export INXT_PASSWORD="${INXT_PASSWORD}"
+export WEBDAV_PORT="${WEBDAV_PORT}"
+export WEBDAV_PROTOCOL="${WEBDAV_PROTOCOL}"
+
+# Handle 2FA configuration
+if ! bashio::config.is_empty 'inxt_otptoken'; then
+    export INXT_OTPTOKEN="${INXT_OTPTOKEN}"
+    bashio::log.info "Using OTP token for automatic 2FA"
+elif ! bashio::config.is_empty 'inxt_twofactorcode'; then
+    export INXT_TWOFACTORCODE="${INXT_TWOFACTORCODE}"
+    bashio::log.info "Using provided 2FA code"
+fi
+
+bashio::log.info "Configuration validated"
+bashio::log.info "Internxt User: ${INXT_USER}"
+bashio::log.info "WebDAV Protocol: ${WEBDAV_PROTOCOL}"
+bashio::log.info "WebDAV Port: ${WEBDAV_PORT}"
+
+# Get and display network information
+HOSTNAME=$(bashio::host.hostname)
+if bashio::var.has_value "${HOSTNAME}"; then
+    bashio::log.info "WebDAV Server URL: ${WEBDAV_PROTOCOL}://${HOSTNAME}:${WEBDAV_PORT}"
+fi
+
+# Try to get the local IP address
+LOCAL_IP=$(hostname -i 2>/dev/null | awk '{print $1}')
+if bashio::var.has_value "${LOCAL_IP}"; then
+    bashio::log.info "Add-on IP Address: ${LOCAL_IP}"
+    bashio::log.info "Alternative URL: ${WEBDAV_PROTOCOL}://${LOCAL_IP}:${WEBDAV_PORT}"
+fi
+
+# Send discovery information to Home Assistant
+bashio::log.info "Sending discovery information to Home Assistant..."
+if bashio::discovery "webdav" \
+    "host" "${HOSTNAME}" \
+    "port" "${WEBDAV_PORT}" \
+    "ssl" "$([ "${WEBDAV_PROTOCOL}" = "https" ] && echo "true" || echo "false")" \
+    "name" "Internxt WebDAV" \
+    "url" "${WEBDAV_PROTOCOL}://${HOSTNAME}:${WEBDAV_PORT}"; then
+    bashio::log.info "Discovery information sent successfully"
+else
+    bashio::log.warning "Failed to send discovery information (this is optional)"
+fi
+
+# Use the official internxt/webdav entrypoint script
+# It handles login, webdav-config, and starts the server
+bashio::log.info "Starting via official internxt entrypoint..."
+
+# Apply log filtering based on configuration
+# Note: We use pipefail and capture exit code to ensure failures are detected
+set -o pipefail
+
+case "${LOG_LEVEL}" in
+    quiet)
+        bashio::log.info "Log level: quiet (errors only)"
+        export LOG_FILTER_MODE="quiet"
+        /docker-entrypoint.sh 2>&1 | /usr/local/bin/log-filter.sh
+        exit_code=$?
+        ;;
+    verbose)
+        bashio::log.info "Log level: verbose (all logs)"
+        # No filtering, show everything
+        exec /docker-entrypoint.sh
+        ;;
+    *)
+        bashio::log.info "Log level: normal (filtered)"
+        export LOG_FILTER_MODE="normal"
+        /docker-entrypoint.sh 2>&1 | /usr/local/bin/log-filter.sh
+        exit_code=$?
+        ;;
+esac
+
+# Exit with the entrypoint's exit code so s6 finish script handles it properly
+exit "${exit_code:-1}"

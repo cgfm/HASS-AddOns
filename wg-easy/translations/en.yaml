@@ -1,0 +1,26 @@
+title: WG-Easy
+configuration:
+  wg_host:
+    name: Public host (WG_HOST)
+    description: Domain name or public IP that WG clients use to reach your server. Example "vpn.example.com" or "203.0.113.10".
+  password:
+    name: Admin UI password
+    description: Protects the WG-Easy web UI. Leave empty to disable authentication.
+  wg_port:
+    name: WireGuard UDP port
+    description: UDP port for the WireGuard interface (forward this on your router). Default is 51820.
+  allowed_ips:
+    name: Allowed IPs (client routes)
+    description: Comma-separated CIDRs pushed to clients. Use "0.0.0.0/0, ::/0" for full-tunnel, or e.g. "192.168.1.0/24" for split-tunnel.
+  default_dns:
+    name: Default DNS servers
+    description: Comma-separated DNS servers to include in client configs. Example "1.1.1.1, 1.0.0.1".
+  mtu:
+    name: Interface MTU
+    description: MTU for the WireGuard interface. Lower this (e.g. 1280-1420) if you experience fragmentation.
+  persistent_keepalive:
+    name: Persistent keepalive (seconds)
+    description: Interval for client keepalives. Set 0 to disable; 25 is commonly used for NAT traversal.
+  max_clients:
+    name: Maximum clients
+    description: Maximum number of peers that can be created.

@@ -1,0 +1,54 @@
+name: "Komodo Periphery"
+description: "Komodo Periphery Server - Manages containers on remote servers"
+version: "2.1.0"
+slug: "komodo-periphery"
+init: false
+arch:
+  - aarch64
+  - amd64
+startup: services
+boot: auto
+host_network: false
+privileged:
+  - SYS_ADMIN
+full_access: true
+docker_api: true
+ports:
+  8120/tcp: 8120
+ports_description:
+  8120/tcp: Periphery API (HTTPS)
+map:
+  - addon_config:rw
+  - share:rw
+  - media:rw
+  - ssl:rw
+options:
+  core_url: ""
+  passkey: ""
+  ssl_enabled: true
+  logging_level: "info"
+  disable_terminals: false
+  disable_container_exec: false
+  monitoring_interval: "30-sec"
+  container_stats_interval: "1-min"
+  stack_directory: "/share/komodo/stacks"
+  repo_directory: "/share/komodo/repos"
+  build_directory: "/share/komodo/builds"
+  include_disk_mounts: []
+  exclude_disk_mounts: ["/dev", "/proc", "/sys"]
+schema:
+  core_url: str?
+  passkey: password?
+  ssl_enabled: bool
+  logging_level: list(trace|debug|info|warn|error)?
+  disable_terminals: bool
+  disable_container_exec: bool
+  monitoring_interval: list(1-sec|5-sec|10-sec|15-sec|30-sec|1-min|2-min|5-min|10-min|15-min|30-min)?
+  container_stats_interval: list(1-sec|5-sec|10-sec|15-sec|30-sec|1-min|2-min|5-min|10-min|15-min|30-min|1-hr|2-hr|6-hr|8-hr|12-hr|1-day|3-day|1-wk|2-wk|30-day)?
+  stack_directory: str?
+  repo_directory: str?
+  build_directory: str?
+  include_disk_mounts:
+    - str
+  exclude_disk_mounts:
+    - str

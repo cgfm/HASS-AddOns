@@ -1,0 +1,40 @@
+#!/usr/bin/with-contenv bashio
+# shellcheck shell=bash
+#
+# Finish script for Internxt service
+# Records failure for backoff handling in run script
+#
+
+EXIT_CODE="${1:-0}"
+
+# File to track restart attempts for exponential backoff
+RESTART_COUNT_FILE="/tmp/internxt_restart_count"
+LAST_FAILURE_FILE="/tmp/internxt_last_failure"
+
+# If exit was clean (0), reset counter
+if [[ "$EXIT_CODE" -eq 0 ]]; then
+    rm -f "$RESTART_COUNT_FILE" "$LAST_FAILURE_FILE"
+    exit 0
+fi
+
+# Read and increment restart counter
+if [[ -f "$RESTART_COUNT_FILE" ]]; then
+    RESTART_COUNT=$(cat "$RESTART_COUNT_FILE")
+else
+    RESTART_COUNT=0
+fi
+
+RESTART_COUNT=$((RESTART_COUNT + 1))
+echo "$RESTART_COUNT" > "$RESTART_COUNT_FILE"
+
+# Record the failure time
+date +%s > "$LAST_FAILURE_FILE"
+
+bashio::log.warning "Service exited with code ${EXIT_CODE} (failure ${RESTART_COUNT})"
+
+# If we've failed too many times, terminate the whole add-on
+if [[ "$RESTART_COUNT" -ge 10 ]]; then
+    bashio::log.fatal "Service has failed ${RESTART_COUNT} times. Stopping add-on."
+    rm -f "$RESTART_COUNT_FILE" "$LAST_FAILURE_FILE"
+    exec s6-svscanctl -t /var/run/s6/services
+fi

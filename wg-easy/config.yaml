@@ -1,0 +1,55 @@
+name: WG-Easy
+slug: wg_easy
+version: "0.1.0"
+description: Simple WireGuard VPN manager with Web UI (WG-Easy)
+url: https://github.com/cgfm/WG-Easy-AddOn
+arch:
+  - aarch64
+  - amd64
+  - armv7
+startup: services
+init: false
+host_network: true
+privileged:
+  - NET_ADMIN
+  - SYS_MODULE
+devices:
+  - /dev/net/tun
+map:
+  - data:rw
+
+# Web UI lives on 51821 by default. If you change PORT via options, the URL here will not auto-update.
+webui: http://[HOST]:[PORT:51821]
+
+# Ingress/Sidebar
+ingress: true
+ingress_port: 51821
+ingress_stream: true
+panel_icon: mdi:vpn
+panel_title: WG-Easy
+watchdog: http://[HOST]:[PORT:51821]
+
+# Store visuals
+# You can replace these with your preferred artwork files.
+icon: wireguard.png
+logo: wireguard.png
+
+options:
+  wg_host: ""
+  password: ""
+  wg_port: 51820
+  allowed_ips: "0.0.0.0/0, ::/0"
+  default_dns: "1.1.1.1, 1.0.0.1"
+  mtu: 1420
+  persistent_keepalive: 0
+  max_clients: 10
+
+schema:
+  wg_host: str
+  password: str?
+  wg_port: int
+  allowed_ips: str
+  default_dns: str
+  mtu: int
+  persistent_keepalive: int
+  max_clients: int

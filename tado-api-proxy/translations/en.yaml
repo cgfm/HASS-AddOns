@@ -1,0 +1,19 @@
+configuration:
+  superuser_email:
+    name: Admin Email
+    description: >-
+      Email address for the proxy admin account (Web UI login).
+      This is NOT your tado account – tado accounts are added through the Web UI.
+  superuser_password:
+    name: Admin Password
+    description: >-
+      Password for the proxy admin account (Web UI login).
+      Choose a strong password – this protects access to your proxy configuration.
+  expose_to_lan:
+    name: Expose to LAN
+    description: >-
+      Make the proxy accessible on your local network.
+      If enabled, also set the port mapping (default 8080) in the add-on network configuration.
+      If disabled, the proxy is only accessible through the Home Assistant sidebar (Ingress).
+network:
+  8080/tcp: Tado API Proxy port (only used when LAN access is enabled)

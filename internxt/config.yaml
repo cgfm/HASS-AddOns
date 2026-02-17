@@ -1,0 +1,38 @@
+name: "Internxt WebDAV"
+version: "1.1.0"
+slug: "internxt_webdav"
+description: "WebDAV server for Internxt cloud storage"
+url: "https://github.com/cgfm/Internxt-AddOn"
+arch:
+  - aarch64
+  - amd64
+  - armhf
+  - armv7
+  - i386
+init: false
+startup: services
+boot: auto
+hassio_api: true
+hassio_role: default
+discovery:
+  - webdav
+ports:
+  3005/tcp: 3005
+ports_description:
+  3005/tcp: WebDAV server port
+options:
+  inxt_user: ""
+  inxt_password: ""
+  inxt_twofactorcode: ""
+  inxt_otptoken: ""
+  webdav_port: 3005
+  webdav_protocol: "https"
+  log_level: "normal"
+schema:
+  inxt_user: email
+  inxt_password: password
+  inxt_twofactorcode: password?
+  inxt_otptoken: password?
+  webdav_port: port
+  webdav_protocol: list(http|https)
+  log_level: list(quiet|normal|verbose)

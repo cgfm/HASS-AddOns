@@ -1,0 +1,30 @@
+configuration:
+  inxt_user:
+    name: Internxt Email
+    description: Your Internxt account email address.
+  inxt_password:
+    name: Internxt Password
+    description: Your Internxt account password.
+  inxt_twofactorcode:
+    name: 2FA Code (one-time)
+    description: >-
+      A one-time 6-digit code from your authenticator app.
+      Not recommended - use TOTP Secret instead for automatic code generation.
+  inxt_otptoken:
+    name: TOTP Secret (recommended)
+    description: >-
+      The secret seed from your authenticator app (base32 string like JBSWY3DPEHPK3PXP).
+      Find this when setting up 2FA - it's the key you scan as a QR code.
+      This allows automatic 2FA code generation on each login.
+  webdav_port:
+    name: WebDAV Port
+    description: Port for the WebDAV server.
+  webdav_protocol:
+    name: WebDAV Protocol
+    description: Use HTTPS for secure connections (recommended) or HTTP for local-only access.
+  log_level:
+    name: Log Level
+    description: >-
+      quiet: errors only,
+      normal: important messages (default),
+      verbose: all logs including WebDAV operations.

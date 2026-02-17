@@ -1,0 +1,26 @@
+title: WG-Easy
+configuration:
+  wg_host:
+    name: Host público (WG_HOST)
+    description: Nombre de dominio o IP pública que los clientes usan para alcanzar su servidor. Ejemplo "vpn.example.com" o "203.0.113.10".
+  password:
+    name: Contraseña de la interfaz de administración
+    description: Protege la interfaz web de WG‑Easy. Dejar en blanco para desactivar la autenticación.
+  wg_port:
+    name: Puerto UDP de WireGuard
+    description: Puerto UDP de la interfaz WireGuard (redirija/abra en su router). Predeterminado 51820.
+  allowed_ips:
+    name: IPs permitidas (rutas del cliente)
+    description: CIDR separados por comas enviados a los clientes. Use "0.0.0.0/0, ::/0" para túnel completo, o p. ej. "192.168.1.0/24" para túnel dividido.
+  default_dns:
+    name: Servidores DNS predeterminados
+    description: Servidores DNS separados por comas para incluir en las configuraciones de cliente. Ejemplo "1.1.1.1, 1.0.0.1".
+  mtu:
+    name: MTU de la interfaz
+    description: MTU para la interfaz de WireGuard. Reduzca (p. ej. 1280–1420) si experimenta fragmentación.
+  persistent_keepalive:
+    name: Keepalive persistente (segundos)
+    description: Intervalo de keepalive del cliente. Establezca 0 para desactivar; 25 es común para atravesar NAT.
+  max_clients:
+    name: Máximo de clientes
+    description: Número máximo de pares que se pueden crear.

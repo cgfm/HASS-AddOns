@@ -1,0 +1,41 @@
+name: "Tado API Proxy"
+version: "1.1.0"
+slug: "tado-api-proxy"
+description: "Bypass tado API rate limits with automatic token management, multi-account support, and a web UI"
+url: "https://github.com/s1adem4n/tado-api-proxy"
+arch:
+  - amd64
+  - aarch64
+startup: application
+boot: auto
+init: true
+
+# Ingress – Web UI accessible in HA sidebar
+ingress: true
+ingress_port: 8080
+ingress_entry: /
+panel_icon: "mdi:thermostat"
+panel_title: "Tado API Proxy"
+panel_admin: true
+
+# Ports – null by default (ingress only), user can map them for LAN access
+ports:
+  8080/tcp: null
+ports_description:
+  8080/tcp: "Tado API Proxy web UI and API endpoint"
+
+# Persistent storage
+map:
+  - type: data
+
+# Options with defaults
+options:
+  superuser_email: ""
+  superuser_password: ""
+  expose_to_lan: false
+
+# Schema validation
+schema:
+  superuser_email: email
+  superuser_password: password
+  expose_to_lan: bool
