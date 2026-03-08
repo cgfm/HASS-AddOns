@@ -1,0 +1,8 @@
+build_from:
+  aarch64: "ghcr.io/home-assistant/aarch64-base:3.23"
+  amd64: "ghcr.io/home-assistant/amd64-base:3.23"
+labels:
+  org.opencontainers.image.title: "MCP2ZigBee2MQTT"
+  org.opencontainers.image.description: "MCP Server bridging AI assistants to ZigBee2MQTT"
+  org.opencontainers.image.source: "https://github.com/cgfm/HASS-AddOns"
+  org.opencontainers.image.licenses: "MIT"

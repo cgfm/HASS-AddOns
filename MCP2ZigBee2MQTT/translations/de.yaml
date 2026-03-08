@@ -1,0 +1,30 @@
+configuration:
+  mqtt_broker_url:
+    name: MQTT Broker URL
+    description: >-
+      URL des MQTT Brokers. Verwende mqtt://core-mosquitto:1883 für das
+      Mosquitto Add-on, oder gib einen externen Broker an.
+  mqtt_username:
+    name: MQTT Benutzername
+    description: Benutzername für die MQTT Broker Authentifizierung (optional).
+  mqtt_password:
+    name: MQTT Passwort
+    description: Passwort für die MQTT Broker Authentifizierung (optional).
+  mqtt_base_topic:
+    name: MQTT Basis-Topic
+    description: >-
+      Basis-Topic das von ZigBee2MQTT verwendet wird. Standard ist "zigbee2mqtt".
+  transport_mode:
+    name: Transport-Modus
+    description: >-
+      MCP Transport-Modus. Verwende "http" für HTTP/SSE (empfohlen für
+      AI-Assistenten-Integration) oder "stdio" für Standard I/O.
+  api_key:
+    name: API-Schlüssel
+    description: >-
+      Optionaler API-Schlüssel zur Absicherung des MCP HTTP-Endpunkts.
+  log_level:
+    name: Log-Level
+    description: Die Ausführlichkeit der Log-Ausgabe.
+network:
+  3235/tcp: MCP HTTP/SSE Schnittstelle
