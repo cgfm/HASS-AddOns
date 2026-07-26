@@ -1,0 +1,242 @@
+diff --git a/package.json b/package.json
+--- a/package.json
++++ b/package.json
+@@ -20,19 +20,19 @@
+   "author": "",
+   "license": "MIT",
+   "dependencies": {
+-    "@modelcontextprotocol/sdk": "^1.0.4",
+-    "mqtt": "^5.10.1",
+-    "better-sqlite3": "^11.5.0",
+-    "express": "^4.21.1",
+-    "cors": "^2.8.5",
+-    "eventsource": "^2.0.2",
+-    "node-fetch": "^3.3.2"
++    "@modelcontextprotocol/sdk": "1.29.0",
++    "mqtt": "5.15.2",
++    "better-sqlite3": "11.10.0",
++    "express": "4.22.2",
++    "cors": "2.8.6",
++    "eventsource": "2.0.2",
++    "node-fetch": "3.3.2"
+   },
+   "devDependencies": {
+-    "@types/better-sqlite3": "^7.6.12",
+-    "@types/node": "^22.8.6",
+-    "@types/express": "^5.0.0",
+-    "@types/cors": "^2.8.17",
+-    "typescript": "^5.6.3"
++    "@types/better-sqlite3": "7.6.13",
++    "@types/node": "22.20.1",
++    "@types/express": "5.0.6",
++    "@types/cors": "2.8.19",
++    "typescript": "5.9.3"
+   }
+ }
+diff --git a/src/database.ts b/src/database.ts
+--- a/src/database.ts
++++ b/src/database.ts
+@@ -26,6 +26,35 @@ export class ZigbeeDatabase {
+       );
+       CREATE INDEX IF NOT EXISTS idx_devices_friendly_name ON devices(friendly_name);
+     `);
++
++    // Repair databases created by the short-lived add-on patch that removed
++    // UNIQUE from friendly_name. Keep the most recently updated duplicate,
++    // then restore uniqueness with an explicit index.
++    const devicesSchema = this.db
++      .prepare(`SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'devices'`)
++      .get() as { sql: string } | undefined;
++
++    if (devicesSchema && !/friendly_name\s+TEXT\s+NOT\s+NULL\s+UNIQUE/i.test(devicesSchema.sql)) {
++      const migrateFriendlyNameUniqueness = this.db.transaction(() => {
++        this.db.exec(`
++          DELETE FROM devices
++          WHERE rowid NOT IN (
++            SELECT (
++              SELECT newest.rowid
++              FROM devices AS newest
++              WHERE newest.friendly_name = grouped.friendly_name
++              ORDER BY newest.updated_at DESC, newest.rowid DESC
++              LIMIT 1
++            )
++            FROM devices AS grouped
++            GROUP BY grouped.friendly_name
++          );
++          CREATE UNIQUE INDEX IF NOT EXISTS idx_devices_friendly_name_unique
++          ON devices(friendly_name);
++        `);
++      });
++      migrateFriendlyNameUniqueness();
++    }
+ 
+     // Device fields - schema/structure of each device's data
+     this.db.exec(`
+diff --git a/src/index.ts b/src/index.ts
+--- a/src/index.ts
++++ b/src/index.ts
+@@ -35,7 +35,7 @@ async function startHttpMode(db: ZigbeeDatabase, mqtt: MqttListener) {
+   app.use(cors());
+   app.use(express.json());
+ 
+-  const mcpServer = new ZigbeeMcpServer(db, mqtt, config.baseTopic);
++  const transports = new Map<string, SSEServerTransport>();
+ 
+   // Health check endpoint
+   app.get('/health', (req, res) => {
+@@ -59,8 +59,26 @@ async function startHttpMode(db: ZigbeeDatabase, mqtt: MqttListener) {
+     }
+ 
+     logger.info('New SSE connection from:', req.ip);
++    const mcpServer = new ZigbeeMcpServer(db, mqtt, config.baseTopic);
+     const transport = new SSEServerTransport('/messages', res);
+-    await mcpServer.connect(transport);
++    transports.set(transport.sessionId, transport);
++
++    res.on('close', () => {
++      transports.delete(transport.sessionId);
++      logger.debug(`SSE session closed: ${transport.sessionId}`);
++    });
++
++    try {
++      await mcpServer.connect(transport);
++    } catch (error) {
++      transports.delete(transport.sessionId);
++      logger.error('Failed to establish SSE session:', error);
++      if (!res.headersSent) {
++        res.status(500).json({ error: 'Failed to establish SSE session' });
++      } else if (!res.writableEnded) {
++        res.end();
++      }
++    }
+   });
+ 
+   // MCP message endpoint (for POST requests from SSE)
+@@ -74,8 +92,30 @@ async function startHttpMode(db: ZigbeeDatabase, mqtt: MqttListener) {
+       }
+     }
+ 
+-    // This is handled by the SSE transport
+-    res.status(200).end();
++    const sessionId = typeof req.query.sessionId === 'string'
++      ? req.query.sessionId
++      : undefined;
++    if (!sessionId) {
++      res.status(400).json({ error: 'Missing sessionId' });
++      return;
++    }
++
++    const transport = transports.get(sessionId);
++    if (!transport) {
++      res.status(404).json({ error: 'Unknown or expired sessionId' });
++      return;
++    }
++
++    try {
++      await transport.handlePostMessage(req, res, req.body);
++    } catch (error) {
++      logger.error(`Failed to process MCP message for ${sessionId}:`, error);
++      if (!res.headersSent) {
++        res.status(500).json({ error: 'Failed to process MCP message' });
++      } else if (!res.writableEnded) {
++        res.end();
++      }
++    }
+   });
+ 
+   await new Promise<void>((resolve) => {
+diff --git a/src/mqtt-listener.ts b/src/mqtt-listener.ts
+--- a/src/mqtt-listener.ts
++++ b/src/mqtt-listener.ts
+@@ -77,23 +77,14 @@ export class MqttListener {
+ 
+     const baseTopic = this.config.baseTopic;
+ 
+-    // Subscribe to all topics to learn device structure
+-    const topics = [
+-      `${baseTopic}/bridge/devices`,      // Retained: All device definitions
+-      `${baseTopic}/bridge/state`,        // Retained: Bridge state
+-      `${baseTopic}/bridge/groups`,       // Retained: Groups
+-      `${baseTopic}/+`,                   // All device state updates
+-      `${baseTopic}/+/availability`,      // Device availability (retained)
+-    ];
+-
+-    topics.forEach(topic => {
+-      this.client?.subscribe(topic, { qos: 1 }, (err) => {
+-        if (err) {
+-          logger.error(`Failed to subscribe to ${topic}:`, err);
+-        } else {
+-          logger.debug(`Subscribed to ${topic}`);
+-        }
+-      });
++    // A friendly name may contain "/" and therefore span multiple MQTT levels.
++    const topic = `${baseTopic}/#`;
++    this.client.subscribe(topic, { qos: 1 }, (err) => {
++      if (err) {
++        logger.error(`Failed to subscribe to ${topic}:`, err);
++      } else {
++        logger.debug(`Subscribed to ${topic}`);
++      }
+     });
+   }
+ 
+@@ -101,38 +92,50 @@ export class MqttListener {
+     try {
+       const message = payload.toString();
+       const baseTopic = this.config.baseTopic;
++      const topicPrefix = `${baseTopic}/`;
++
++      if (!topic.startsWith(topicPrefix)) {
++        return;
++      }
++
++      const relativeTopic = topic.slice(topicPrefix.length);
+ 
+       // Handle bridge/devices - this is the main source of device definitions
+-      if (topic === `${baseTopic}/bridge/devices`) {
++      if (relativeTopic === 'bridge/devices') {
+         this.handleBridgeDevices(message);
+         return;
+       }
+ 
+       // Handle bridge/state
+-      if (topic === `${baseTopic}/bridge/state`) {
++      if (relativeTopic === 'bridge/state') {
+         logger.debug('Bridge state:', message);
+         return;
+       }
+ 
+       // Handle bridge/groups
+-      if (topic === `${baseTopic}/bridge/groups`) {
++      if (relativeTopic === 'bridge/groups') {
+         logger.debug('Bridge groups received');
+         return;
+       }
+ 
+       // Handle device availability
+-      if (topic.endsWith('/availability')) {
+-        const friendlyName = topic.replace(`${baseTopic}/`, '').replace('/availability', '');
++      if (relativeTopic.endsWith('/availability')) {
++        const friendlyName = relativeTopic.slice(0, -'/availability'.length);
+         this.handleDeviceAvailability(friendlyName, message);
+         return;
+       }
+ 
+-      // Handle device state updates
+-      if (topic.startsWith(baseTopic) && !topic.includes('/bridge/') && !topic.includes('/availability')) {
+-        const friendlyName = topic.replace(`${baseTopic}/`, '').split('/')[0];
+-        this.handleDeviceState(friendlyName, message);
++      // Ignore bridge internals and command topics echoed back by the broker.
++      if (
++        relativeTopic.startsWith('bridge/') ||
++        relativeTopic.endsWith('/set') ||
++        relativeTopic.endsWith('/get')
++      ) {
+         return;
+       }
++
++      // The complete relative topic is the friendly name, including any "/".
++      this.handleDeviceState(relativeTopic, message);
+     } catch (error) {
+       logger.error(`Error handling message from ${topic}:`, error);
+     }

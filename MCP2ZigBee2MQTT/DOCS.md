@@ -13,7 +13,6 @@ use to:
 - Discover all ZigBee devices and their capabilities
 - Read device states (temperature, humidity, on/off, etc.)
 - Control devices (turn on/off, set brightness, etc.)
-- Query device history
 
 ## Configuration
 
@@ -39,7 +38,10 @@ The base topic configured in ZigBee2MQTT. Default is `zigbee2mqtt`.
 ### API Key
 
 Optional API key to protect the MCP HTTP endpoint. If set, clients must include it
-in their requests.
+as an `Authorization: Bearer <key>` header.
+
+If left empty, the add-on generates a persistent key on first start and prints it
+once in the add-on log. Save that key or configure your own.
 
 ### Log Level
 
@@ -48,8 +50,8 @@ Controls the verbosity of log output: `debug`, `info`, `warn`, `error`.
 ## Connecting an AI Assistant
 
 Once the add-on is running, configure your MCP-compatible AI assistant to connect to
-the add-on's HTTP/SSE endpoint. If using ingress, the endpoint is available through
-the Home Assistant sidebar. For direct access, map the port in the network configuration.
+the add-on's HTTP/SSE endpoint through port `3235`. The add-on does not provide a web
+interface; Home Assistant Ingress is therefore not enabled.
 
 ### Example MCP client configuration
 
@@ -58,7 +60,9 @@ the Home Assistant sidebar. For direct access, map the port in the network confi
   "mcpServers": {
     "zigbee2mqtt": {
       "url": "http://<your-ha-ip>:3235/sse",
-      "apiKey": "<your-api-key>"
+      "headers": {
+        "Authorization": "Bearer <your-api-key>"
+      }
     }
   }
 }

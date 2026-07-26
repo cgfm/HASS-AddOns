@@ -1,5 +1,5 @@
 name: "MCP2ZigBee2MQTT"
-version: "1.0.0"
+version: "1.0.1"
 slug: "mcp2zigbee2mqtt"
 description: "MCP Server that connects AI assistants to ZigBee2MQTT via MQTT for device discovery and control"
 url: "https://github.com/ichbinder/MCP2ZigBee2MQTT"
@@ -9,13 +9,6 @@ arch:
 init: false
 startup: application
 boot: auto
-hassio_api: true
-homeassistant_api: true
-ingress: true
-ingress_port: 3235
-panel_icon: mdi:zigbee
-panel_title: "MCP2ZigBee2MQTT"
-host_network: true
 ports:
   3235/tcp: 3235
 ports_description:

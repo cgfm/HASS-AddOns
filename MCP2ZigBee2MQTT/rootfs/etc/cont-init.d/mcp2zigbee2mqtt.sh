@@ -60,11 +60,12 @@ else
         echo -n "${API_KEY}" > /data/.api_key
         bashio::log.warning "---------------------------------------------------"
         bashio::log.warning "No API key configured. Auto-generated a secure key."
+        bashio::log.warning "Generated API key: ${API_KEY}"
         bashio::log.warning "You can set your own key in the add-on configuration."
+        bashio::log.warning "Save this key now; it will not be logged again."
         bashio::log.warning "---------------------------------------------------"
     fi
     export API_KEY="${API_KEY}"
-    bashio::log.info "API Key: ${API_KEY}"
 fi
 
 # Log connection info
@@ -72,7 +73,7 @@ bashio::log.info "---------------------------------------------------"
 bashio::log.info "MCP Server is reachable at:"
 bashio::log.info "  URL:    http://${HOST_IP}:${MCP_PORT}/sse"
 bashio::log.info "  Health: http://${HOST_IP}:${MCP_PORT}/health"
-bashio::log.info "  API Key: ${API_KEY}"
+bashio::log.info "  API key authentication: enabled"
 bashio::log.info "---------------------------------------------------"
 
 # Start the application
