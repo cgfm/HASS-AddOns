@@ -1,4 +1,5 @@
-ARG BUILD_FROM
+ARG BUILD_ARCH=amd64
+ARG BUILD_VERSION=dev
 ARG MCP2ZIGBEE2MQTT_COMMIT=cb4c9eb4239330e164313844c6873821c39aeab7
 
 # ==============================================================================
@@ -32,7 +33,18 @@ RUN npm prune --omit=dev
 # ==============================================================================
 # Runtime stage: HA base image + Node.js runtime + built app
 # ==============================================================================
-FROM ${BUILD_FROM}
+FROM ghcr.io/home-assistant/base:3.23
+
+ARG BUILD_ARCH
+ARG BUILD_VERSION
+
+LABEL io.hass.version="${BUILD_VERSION}" \
+      io.hass.type="app" \
+      io.hass.arch="${BUILD_ARCH}" \
+      org.opencontainers.image.title="MCP2ZigBee2MQTT" \
+      org.opencontainers.image.description="MCP Server bridging AI assistants to ZigBee2MQTT" \
+      org.opencontainers.image.source="https://github.com/cgfm/HASS-AddOns" \
+      org.opencontainers.image.licenses="MIT"
 
 # Install runtime dependencies for Node.js (libstdc++ needed for native modules)
 RUN apk add --no-cache libstdc++

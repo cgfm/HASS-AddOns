@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.2
+
+- Fix builds and updates on Home Assistant Supervisor 2026.04 and newer
+- Declare the runtime base image and required Home Assistant image labels directly
+  in the Dockerfile
+
 ## 1.0.1
 
 - Fix `friendly_name` conflicts caused by stale devices in the MCP database
