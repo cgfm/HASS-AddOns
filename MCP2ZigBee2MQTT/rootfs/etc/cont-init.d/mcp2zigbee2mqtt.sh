@@ -24,8 +24,8 @@ LOG_LEVEL=$(bashio::config 'log_level')
 # Fixed MCP server port
 MCP_PORT=3235
 
-# Get the external HA URL for log output
-HOST_IP=$(bashio::network.ip_address || echo "<your-ha-ip>")
+# The add-on container cannot reliably determine Home Assistant's external IP.
+HOST_IP="<your-ha-ip>"
 
 bashio::log.info "Starting MCP2ZigBee2MQTT..."
 bashio::log.info "MQTT Broker: ${MQTT_BROKER_URL}"

@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.3
+
+- Stop calling a non-existent Bashio network helper during startup
+
 ## 1.0.2
 
 - Fix builds and updates on Home Assistant Supervisor 2026.04 and newer
