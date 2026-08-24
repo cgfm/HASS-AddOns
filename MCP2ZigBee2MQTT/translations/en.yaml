@@ -17,14 +17,32 @@ configuration:
   transport_mode:
     name: Transport Mode
     description: >-
-      MCP transport mode. Use "http" for HTTP/SSE (recommended for
+      MCP transport mode. Use "http" for Streamable HTTP (recommended for
       AI assistant integration) or "stdio" for standard I/O.
   api_key:
-    name: API Key
+    name: Bearer Access Token
     description: >-
-      Optional API key to secure the MCP HTTP endpoint.
+      Secret sent by MCP clients as Authorization: Bearer <token>. Required for new HTTP installations.
+  allowed_origins:
+    name: Allowed Browser Origins
+    description: Comma-separated exact origins allowed to access MCP from a browser. Leave empty for non-browser clients.
+  ssl:
+    name: Enable TLS
+    description: Serve HTTPS directly using certificate files from Home Assistant's /ssl directory.
+  certfile:
+    name: Certificate File
+    description: Certificate chain filename in /ssl.
+  keyfile:
+    name: Private Key File
+    description: Private key filename in /ssl.
+  max_sessions:
+    name: Maximum MCP Sessions
+    description: Maximum number of simultaneous Streamable HTTP and legacy SSE sessions.
+  allow_destructive:
+    name: Enable Management Writes
+    description: Expose device, group, binding, pairing, OTA scheduling, and restart tools. Keep disabled unless needed.
   log_level:
     name: Log Level
     description: The log verbosity level.
 network:
-  3235/tcp: MCP HTTP/SSE interface
+  3235/tcp: MCP Streamable HTTP interface

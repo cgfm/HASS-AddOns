@@ -1,69 +1,61 @@
 # MCP2ZigBee2MQTT
 
-This add-on runs the [MCP2ZigBee2MQTT](https://github.com/ichbinder/MCP2ZigBee2MQTT) server,
-which provides a Model Context Protocol (MCP) interface to ZigBee2MQTT. This enables AI
-assistants like Claude to discover and control ZigBee devices through your MQTT broker.
-
-## How it works
-
-The add-on connects to your MQTT broker (e.g., the Mosquitto add-on) and subscribes to
-ZigBee2MQTT topics. It exposes an MCP-compatible HTTP/SSE endpoint that AI assistants can
-use to:
-
-- Discover all ZigBee devices and their capabilities
-- Read device states (temperature, humidity, on/off, etc.)
-- Control devices (turn on/off, set brightness, etc.)
+This add-on exposes Zigbee2MQTT through the Model Context Protocol (MCP). It discovers devices from retained MQTT messages, stores their schemas and current state locally, and sends control or administration requests through Zigbee2MQTT's documented MQTT API.
 
 ## Configuration
 
-### MQTT Broker URL
+- `mqtt_broker_url`, `mqtt_username`, `mqtt_password`: MQTT connection settings. The Mosquitto add-on normally uses `mqtt://core-mosquitto:1883`.
+- `mqtt_base_topic`: Zigbee2MQTT base topic; normally `zigbee2mqtt`.
+- `transport_mode`: Use `http` for network clients or `stdio` for a directly launched process.
+- `api_key`: Despite the compatibility name, this is a **Bearer access token**, not a custom API-key header. New HTTP installations must configure one. Clients send `Authorization: Bearer <token>`.
+- `allowed_origins`: Comma-separated exact browser origins, for example `https://home.example.net`. Leave empty for desktop/CLI clients that send no `Origin` header.
+- `ssl`: Enables HTTPS using `certfile` and `keyfile` from Home Assistant's `/ssl` directory.
+- `max_sessions`: Limits simultaneous MCP sessions; default `32`.
+- `allow_destructive`: Exposes management writes. It defaults to `false`, so only read-only bridge tools and normal validated device control are registered. Deletion, binding removal and restart additionally require `confirm: true`.
 
-The URL of your MQTT broker. If you use the Mosquitto add-on, the default
-`mqtt://core-mosquitto:1883` should work. For external brokers, use their full URL.
+Never expose unencrypted port `3235` to the internet. Enable TLS or place the add-on behind an authenticated HTTPS reverse proxy. Existing installations may continue using their old `/data/.api_key`; rotate it by setting `api_key` explicitly.
 
-### MQTT Username / Password
+## Client connection
 
-Credentials for the MQTT broker. Leave empty if your broker doesn't require authentication.
+The preferred Streamable HTTP endpoint is:
 
-### MQTT Base Topic
+```text
+http://<home-assistant-ip>:3235/mcp
+Authorization: Bearer <configured-token>
+```
 
-The base topic configured in ZigBee2MQTT. Default is `zigbee2mqtt`.
+When TLS is enabled, use `https://`. `/sse` and `/messages` remain available only for older MCP clients. `/health` is intentionally unauthenticated and returns only service and MQTT connectivity status.
 
-### Transport Mode
-
-- **http** (recommended): Exposes HTTP/SSE endpoints for AI assistant integration.
-  Endpoints: `/sse`, `/health`, `/messages`
-- **stdio**: Standard I/O transport for direct process integration.
-
-### API Key
-
-Optional API key to protect the MCP HTTP endpoint. If set, clients must include it
-as an `Authorization: Bearer <key>` header.
-
-If left empty, the add-on generates a persistent key on first start and prints it
-once in the add-on log. Save that key or configure your own.
-
-### Log Level
-
-Controls the verbosity of log output: `debug`, `info`, `warn`, `error`.
-
-## Connecting an AI Assistant
-
-Once the add-on is running, configure your MCP-compatible AI assistant to connect to
-the add-on's HTTP/SSE endpoint through port `3235`. The add-on does not provide a web
-interface; Home Assistant Ingress is therefore not enabled.
-
-### Example MCP client configuration
+Example client configuration:
 
 ```json
 {
   "mcpServers": {
     "zigbee2mqtt": {
-      "url": "http://<your-ha-ip>:3235/sse",
+      "url": "https://home.example.net:3235/mcp",
       "headers": {
-        "Authorization": "Bearer <your-api-key>"
+        "Authorization": "Bearer <configured-token>"
       }
     }
   }
 }
 ```
+
+## Available operations
+
+In addition to discovery, state reading, capability search, documentation, and validated device control, the server supports:
+
+- Bridge information, health checks, coordinator checks, restart, and permit-join
+- Group creation, deletion, rename, and membership changes
+- Device options, reconfiguration, rename/removal, and binding/unbinding
+- OTA availability checks and scheduled updates
+- Network maps and read-only external-converter discovery
+
+Administrative calls include a transaction ID and wait for Zigbee2MQTT's matching response. Write tools are hidden unless `allow_destructive` is enabled. The unstable user extension's converter save/remove and generated-definition tools are deliberately excluded: they write executable JavaScript into Zigbee2MQTT and are unsafe to expose to an AI client. Immediate OTA installation is also replaced with scheduling because an update can take many minutes.
+
+## Troubleshooting
+
+- `401 Unauthorized`: Verify the `Bearer ` prefix and configured token.
+- `403 Origin not allowed`: Add the exact scheme, hostname, and port to `allowed_origins`; do not use a wildcard.
+- `503 Session limit reached`: Close stale clients or increase `max_sessions` cautiously.
+- MQTT request timeout: Check the Zigbee2MQTT log and ensure its `base_topic` matches this add-on.

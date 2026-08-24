@@ -1,5 +1,5 @@
 name: "MCP2ZigBee2MQTT"
-version: "1.0.3"
+version: "1.1.0"
 slug: "mcp2zigbee2mqtt"
 description: "MCP Server that connects AI assistants to ZigBee2MQTT via MQTT for device discovery and control"
 url: "https://github.com/ichbinder/MCP2ZigBee2MQTT"
@@ -12,7 +12,9 @@ boot: auto
 ports:
   3235/tcp: 3235
 ports_description:
-  3235/tcp: MCP HTTP/SSE interface
+  3235/tcp: MCP Streamable HTTP interface
+map:
+  - ssl:ro
 options:
   mqtt_broker_url: "mqtt://core-mosquitto:1883"
   mqtt_username: ""
@@ -20,6 +22,12 @@ options:
   mqtt_base_topic: "zigbee2mqtt"
   transport_mode: "http"
   api_key: ""
+  allowed_origins: ""
+  ssl: false
+  certfile: "fullchain.pem"
+  keyfile: "privkey.pem"
+  max_sessions: 32
+  allow_destructive: false
   log_level: "info"
 schema:
   mqtt_broker_url: url
@@ -28,4 +36,10 @@ schema:
   mqtt_base_topic: str
   transport_mode: "list(http|stdio)"
   api_key: password?
+  allowed_origins: str?
+  ssl: bool
+  certfile: str
+  keyfile: str
+  max_sessions: int(1,128)
+  allow_destructive: bool
   log_level: "list(debug|info|warn|error)"

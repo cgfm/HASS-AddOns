@@ -16,8 +16,9 @@ that AI assistants can use to interact with your ZigBee devices through ZigBee2M
 - Discover ZigBee devices and their capabilities
 - Read device states (sensors, switches, lights, etc.)
 - Control devices via AI assistants
-- HTTP/SSE transport for easy integration
-- Optional API key authentication
+- Streamable HTTP transport at `/mcp` (legacy SSE remains available)
+- Strict Bearer-token authentication, optional TLS, Origin checks, and session limits
+- Manage groups, bindings, joining, OTA checks, network maps, and bridge health
 
 ## Prerequisites
 

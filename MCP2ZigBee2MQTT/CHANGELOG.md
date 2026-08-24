@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.1.0
+
+- Add Streamable HTTP at `/mcp` while retaining legacy SSE compatibility
+- Add transactional Zigbee2MQTT tools for groups, bindings, devices, OTA, network maps,
+  bridge health, coordinator checks, joining, restarts, and converter discovery
+- Hide management-write tools by default and require explicit confirmation for irreversible calls
+- Validate device commands against writable Zigbee2MQTT exposes
+- Remove stale devices and their cached schema/state after Zigbee2MQTT removal
+- Enforce strict Bearer authentication with constant-time comparison and failure throttling
+- Add Origin validation, request/session limits, optional TLS, and reduced health output
+- Stop printing generated secrets; new HTTP installations must configure a token
+- Pin the complete npm dependency graph and use `npm ci` for reproducible builds
+
 ## 1.0.3
 
 - Stop calling a non-existent Bashio network helper during startup

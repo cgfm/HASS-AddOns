@@ -25,7 +25,12 @@ COPY patches/0001-addon-runtime-fixes.patch /tmp/0001-addon-runtime-fixes.patch
 RUN git apply --check /tmp/0001-addon-runtime-fixes.patch \
     && git apply /tmp/0001-addon-runtime-fixes.patch
 
-RUN npm install && npm run build
+COPY patches/0002-security-and-management.patch /tmp/0002-security-and-management.patch
+RUN git apply --check /tmp/0002-security-and-management.patch \
+    && git apply /tmp/0002-security-and-management.patch
+
+COPY package-lock.json ./package-lock.json
+RUN npm ci && npm run build
 
 # Remove dev dependencies to slim down
 RUN npm prune --omit=dev

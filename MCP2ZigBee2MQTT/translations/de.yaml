@@ -17,14 +17,32 @@ configuration:
   transport_mode:
     name: Transport-Modus
     description: >-
-      MCP Transport-Modus. Verwende "http" für HTTP/SSE (empfohlen für
+      MCP Transport-Modus. Verwende "http" für Streamable HTTP (empfohlen für
       AI-Assistenten-Integration) oder "stdio" für Standard I/O.
   api_key:
-    name: API-Schlüssel
+    name: Bearer-Zugriffstoken
     description: >-
-      Optionaler API-Schlüssel zur Absicherung des MCP HTTP-Endpunkts.
+      Geheimnis, das MCP-Clients als Authorization: Bearer <Token> senden. Bei neuen HTTP-Installationen erforderlich.
+  allowed_origins:
+    name: Erlaubte Browser-Origins
+    description: Kommagetrennte, exakte Origins für Browser-Zugriffe. Für Nicht-Browser-Clients leer lassen.
+  ssl:
+    name: TLS aktivieren
+    description: HTTPS direkt mit Zertifikatsdateien aus Home Assistants /ssl-Verzeichnis bereitstellen.
+  certfile:
+    name: Zertifikatsdatei
+    description: Dateiname der Zertifikatskette in /ssl.
+  keyfile:
+    name: Private-Key-Datei
+    description: Dateiname des privaten Schlüssels in /ssl.
+  max_sessions:
+    name: Maximale MCP-Sitzungen
+    description: Maximale Anzahl gleichzeitiger Streamable-HTTP- und alter SSE-Sitzungen.
+  allow_destructive:
+    name: Schreibende Verwaltung aktivieren
+    description: Geräte-, Gruppen-, Binding-, Pairing-, OTA- und Neustart-Werkzeuge freigeben. Nur bei Bedarf aktivieren.
   log_level:
     name: Log-Level
     description: Die Ausführlichkeit der Log-Ausgabe.
 network:
-  3235/tcp: MCP HTTP/SSE Schnittstelle
+  3235/tcp: MCP Streamable-HTTP-Schnittstelle
