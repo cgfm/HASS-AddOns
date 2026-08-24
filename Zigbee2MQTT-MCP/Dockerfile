@@ -46,7 +46,7 @@ ARG BUILD_VERSION
 LABEL io.hass.version="${BUILD_VERSION}" \
       io.hass.type="app" \
       io.hass.arch="${BUILD_ARCH}" \
-      org.opencontainers.image.title="MCP2ZigBee2MQTT" \
+      org.opencontainers.image.title="Zigbee2MQTT-MCP" \
       org.opencontainers.image.description="MCP Server bridging AI assistants to ZigBee2MQTT" \
       org.opencontainers.image.source="https://github.com/cgfm/HASS-AddOns" \
       org.opencontainers.image.licenses="MIT"

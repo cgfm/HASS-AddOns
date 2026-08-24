@@ -1,5 +1,5 @@
-name: "MCP2ZigBee2MQTT"
-version: "1.1.0"
+name: "Zigbee2MQTT-MCP"
+version: "1.1.1"
 slug: "mcp2zigbee2mqtt"
 description: "MCP Server that connects AI assistants to ZigBee2MQTT via MQTT for device discovery and control"
 url: "https://github.com/ichbinder/MCP2ZigBee2MQTT"

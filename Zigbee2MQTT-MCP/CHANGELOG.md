@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.1.1
+
+- Rename the displayed add-on from MCP2ZigBee2MQTT to Zigbee2MQTT-MCP
+- Preserve the existing `mcp2zigbee2mqtt` slug and internal paths for upgrade compatibility
+
 ## 1.1.0
 
 - Add Streamable HTTP at `/mcp` while retaining legacy SSE compatibility

@@ -1,8 +1,8 @@
 #!/usr/bin/with-contenv bashio
 # ==============================================================================
-# Home Assistant Add-on: MCP2ZigBee2MQTT
+# Home Assistant Add-on: Zigbee2MQTT-MCP
 #
-# Starts the MCP2ZigBee2MQTT server
+# Starts the Zigbee2MQTT-MCP server
 # ==============================================================================
 
 declare MQTT_BROKER_URL
@@ -39,7 +39,7 @@ MCP_PORT=3235
 # The add-on container cannot reliably determine Home Assistant's external IP.
 HOST_IP="<your-ha-ip>"
 
-bashio::log.info "Starting MCP2ZigBee2MQTT..."
+bashio::log.info "Starting Zigbee2MQTT-MCP..."
 MQTT_LOG_URL="${MQTT_BROKER_URL}"
 if [[ "${MQTT_BROKER_URL}" == *"://"*"@"* ]]; then
     MQTT_SCHEME="${MQTT_BROKER_URL%%://*}"

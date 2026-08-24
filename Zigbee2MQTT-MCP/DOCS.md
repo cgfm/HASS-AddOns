@@ -1,4 +1,4 @@
-# MCP2ZigBee2MQTT
+# Zigbee2MQTT-MCP
 
 This add-on exposes Zigbee2MQTT through the Model Context Protocol (MCP). It discovers devices from retained MQTT messages, stores their schemas and current state locally, and sends control or administration requests through Zigbee2MQTT's documented MQTT API.
 

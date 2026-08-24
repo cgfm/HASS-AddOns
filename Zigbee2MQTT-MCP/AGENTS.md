@@ -2,7 +2,7 @@
 
 ## Project Structure & Module Organization
 
-This directory packages the upstream MCP2ZigBee2MQTT Node.js server as a Home Assistant add-on. `Dockerfile` pins the upstream commit, applies `patches/0001-addon-runtime-fixes.patch`, and builds the application. `config.yaml` defines add-on metadata, ports, options, and validation. Runtime startup logic lives in `rootfs/etc/cont-init.d/mcp2zigbee2mqtt.sh`. Keep user-facing setup details in `DOCS.md`, the short repository overview in `README.md`, release notes in `CHANGELOG.md`, and localized option text in `translations/{en,de}.yaml`.
+This directory packages the upstream MCP2ZigBee2MQTT Node.js server as the Zigbee2MQTT-MCP Home Assistant add-on. `Dockerfile` pins the upstream commit, applies `patches/0001-addon-runtime-fixes.patch`, and builds the application. `config.yaml` defines add-on metadata, ports, options, and validation. Runtime startup logic lives in `rootfs/etc/cont-init.d/mcp2zigbee2mqtt.sh`. Keep user-facing setup details in `DOCS.md`, the short repository overview in `README.md`, release notes in `CHANGELOG.md`, and localized option text in `translations/{en,de}.yaml`.
 
 ## Build, Test, and Development Commands
 
