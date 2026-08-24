@@ -1,0 +1,79 @@
+name: NFS server CI
+
+"on":
+  pull_request:
+    paths:
+      - "NFS-Ganesha-App/**"
+      - ".github/workflows/nfs-server-ci.yml"
+  push:
+    branches:
+      - master
+    paths:
+      - "NFS-Ganesha-App/**"
+      - ".github/workflows/nfs-server-ci.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4
+      - name: Install validation tools
+        run: sudo apt-get update && sudo apt-get install --yes apparmor-utils jq shellcheck yamllint
+      - name: Validate YAML
+        run: yamllint --config-file NFS-Ganesha-App/.yamllint.yaml NFS-Ganesha-App .github/workflows/nfs-server-ci.yml .github/workflows/nfs-server-release.yml
+      - name: Validate shell
+        run: shellcheck NFS-Ganesha-App/nfs_server/run.sh NFS-Ganesha-App/nfs_server/lib/config.sh NFS-Ganesha-App/tests/*.sh
+      - name: Compile AppArmor policy
+        run: apparmor_parser --skip-kernel-load --skip-cache NFS-Ganesha-App/nfs_server/apparmor.txt
+      - name: Run configuration tests
+        run: bash NFS-Ganesha-App/tests/run.sh
+      - name: Run security metadata tests
+        run: bash NFS-Ganesha-App/tests/security.sh
+
+  build:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: linux/amd64
+            suffix: amd64
+          - platform: linux/arm64
+            suffix: aarch64
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130  # v3
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f  # v3
+      - name: Build ${{ matrix.platform }}
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8  # v6
+        with:
+          context: NFS-Ganesha-App/nfs_server
+          platforms: ${{ matrix.platform }}
+          push: false
+          cache-from: type=gha,scope=nfs-server-${{ matrix.suffix }}
+          cache-to: type=gha,mode=max,scope=nfs-server-${{ matrix.suffix }}
+
+  smoke-and-scan:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4
+      - name: Build smoke image
+        run: docker build --tag ha-nfs-ganesha:smoke NFS-Ganesha-App/nfs_server
+      - name: Run container smoke tests
+        run: bash NFS-Ganesha-App/tests/container-smoke.sh ha-nfs-ganesha:smoke
+      - name: Scan runtime image
+        uses: aquasecurity/trivy-action@dc5a429b52fcf669ce959baa2c2dd26090d2a6c4  # v0.32.0
+        with:
+          image-ref: ha-nfs-ganesha:smoke
+          format: table
+          ignore-unfixed: true
+          severity: CRITICAL,HIGH
+          exit-code: "1"

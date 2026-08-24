@@ -1,0 +1,109 @@
+configuration:
+  allowed_clients:
+    name: Allowed clients
+    description: Required allowlist of individual IPv4 addresses or IPv4 CIDR networks. The app refuses to start when this list is empty or invalid.
+  exports:
+    name: Exports
+    description: Enable only the Home Assistant directories you need and select client-visible read-only or read-write access.
+    fields:
+      config:
+        name: Home Assistant Config (/config)
+        description: Home Assistant configuration. Statically mounted read-write; exported only when enabled.
+        fields:
+          enabled:
+            name: Enabled
+            description: Publish this path in the NFSv4 pseudo-filesystem.
+          access:
+            name: Access
+            description: Read-only (ro) or read-write (rw) access for allowed clients.
+      addon_configs:
+        name: App Configs (/addon_configs)
+        description: Configuration data of all installed apps. Statically mounted read-write; exported only when enabled.
+        fields:
+          enabled:
+            name: Enabled
+            description: Publish this path in the NFSv4 pseudo-filesystem.
+          access:
+            name: Access
+            description: Read-only (ro) or read-write (rw) access for allowed clients.
+      addons:
+        name: Local Apps (/addons)
+        description: Locally installed apps. Leave disabled unless remote modification is genuinely required.
+        fields:
+          enabled:
+            name: Enabled
+            description: Publish this path in the NFSv4 pseudo-filesystem.
+          access:
+            name: Access
+            description: Read-only (ro) or read-write (rw) access for allowed clients.
+      ssl:
+        name: SSL (/ssl)
+        description: Certificates and private keys. Secure default is disabled and read-only.
+        fields:
+          enabled:
+            name: Enabled
+            description: Publish this sensitive path in the NFSv4 pseudo-filesystem.
+          access:
+            name: Access
+            description: Prefer read-only (ro); read-write (rw) increases risk.
+      backup:
+        name: Backups (/backup)
+        description: Home Assistant backups. Secure default is disabled and read-only.
+        fields:
+          enabled:
+            name: Enabled
+            description: Publish this sensitive path in the NFSv4 pseudo-filesystem.
+          access:
+            name: Access
+            description: Prefer read-only (ro); read-write (rw) permits backup deletion or alteration.
+      share:
+        name: Share (/share)
+        description: Shared app data.
+        fields:
+          enabled:
+            name: Enabled
+            description: Publish this path in the NFSv4 pseudo-filesystem.
+          access:
+            name: Access
+            description: Read-only (ro) or read-write (rw) access for allowed clients.
+      media:
+        name: Media (/media)
+        description: Local media files.
+        fields:
+          enabled:
+            name: Enabled
+            description: Publish this path in the NFSv4 pseudo-filesystem.
+          access:
+            name: Access
+            description: Read-only (ro) or read-write (rw) access for allowed clients.
+  identity:
+    name: Identity and squashing (security)
+    description: AUTH_SYS trusts client-supplied numeric IDs. Root squash is the recommended default; no-root-squash lets client root act as server root.
+    fields:
+      squash:
+        name: Squash policy
+        description: Use root_squash by default. all_squash maps every user to the anonymous ID. no_root_squash is explicitly dangerous.
+      anonymous_uid:
+        name: Anonymous UID
+        description: Numeric UID used for squashed identities. UID 0 is deliberately forbidden.
+      anonymous_gid:
+        name: Anonymous GID
+        description: Numeric GID used for squashed identities. GID 0 is deliberately forbidden.
+  advanced:
+    name: Advanced NFSv4 settings
+    description: Conservative protocol timing and NFSv4 minor-version controls.
+    fields:
+      nfs_minor_versions:
+        name: NFSv4 minor versions
+        description: Supported minor versions. Defaults to NFSv4.1 and NFSv4.2; NFSv4.0 is intentionally unavailable.
+      lease_lifetime:
+        name: Lease lifetime
+        description: NFSv4 lease lifetime in seconds (10–120).
+      grace_period:
+        name: Grace period
+        description: Server restart recovery grace period in seconds (0–180).
+  log_level:
+    name: Log level
+    description: Ganesha logging verbosity. Debug can expose additional filesystem metadata and affects performance.
+network:
+  2049/tcp: NFSv4 over TCP; expose only to a trusted LAN or storage VLAN

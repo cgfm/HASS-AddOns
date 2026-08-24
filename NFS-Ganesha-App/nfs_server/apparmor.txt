@@ -1,0 +1,100 @@
+#include <tunables/global>
+
+profile nfs_server flags=(attach_disconnected,mediate_deleted) {
+  #include <abstractions/base>
+
+  signal (send) set=(kill,term,int,hup,cont),
+
+  # Home Assistant base image init and the small configuration launcher.
+  /init rix,
+  /bin/{basename,bash,chmod,dirname,grep,jq,mkdir,mktemp,mv,printf,sort} ix,
+  /usr/bin/{basename,bash,chmod,dirname,grep,jq,mkdir,mktemp,mv,printf,sort} ix,
+  /usr/local/bin/run.sh rix,
+  /usr/local/lib/nfs-server/config.sh r,
+  /usr/lib/bashio/** rix,
+  /etc/s6-overlay/{,**} r,
+  /run/{s6,s6-rc*,service}/{,**} rwix,
+  /package/{,**} rix,
+  /command/{,**} rix,
+  /etc/services.d/{,**} rwix,
+  /etc/cont-init.d/{,**} rwix,
+  /etc/cont-finish.d/{,**} rwix,
+  /run/{,**} rwk,
+  /tmp/{,**} rwk,
+  /data/{,**} rwk,
+  /dev/tty rw,
+  /proc/sys/kernel/random/uuid r,
+
+  /usr/bin/ganesha.nfsd cx -> ganesha,
+
+  profile ganesha flags=(attach_disconnected,mediate_deleted) {
+    #include <abstractions/base>
+    #include <abstractions/nameservice>
+
+    capability dac_read_search,
+
+    network inet stream,
+    network inet6 stream,
+    signal (receive) peer=nfs_server,
+    signal (receive) peer=*_nfs_server,
+    signal (send) set=(term,hup) peer=*_nfs_server,
+
+    /usr/bin/ganesha.nfsd mr,
+    /usr/lib/libganesha_nfsd.so* mr,
+    /usr/lib/libntirpc.so* mr,
+    /usr/lib/ganesha/libfsalvfs.so mr,
+    /usr/lib/**.so* mr,
+    /lib/**.so* mr,
+
+    /etc/ganesha/ganesha.conf r,
+    /etc/mtab r,
+    /data/ganesha/ganesha.conf r,
+    /data/ganesha/recovery/{,**} rwk,
+    /run/ganesha/{,**} rwk,
+    /var/lib/nfs/ganesha/{,**} rwk,
+
+    /etc/{group,gai.conf,host.conf,hosts,localtime,nsswitch.conf,passwd,resolv.conf} r,
+    /proc/self/{,**} r,
+    /proc/mounts r,
+    /proc/[0-9]*/mounts r,
+    /proc/sys/kernel/random/boot_id r,
+    /proc/[0-9]*/mountinfo r,
+    /sys/devices/system/{cpu,node}/{,**} r,
+    /dev/{null,random,urandom,zero} rw,
+    /tmp/ganesha.nfsd.locktest* rwk,
+
+    # FSAL_VFS resolves an export by opening every directory component and then
+    # the export root itself. Keep traversal confined to this fixed mount tree.
+    / r,
+    /mnt r,
+    /mnt/ r,
+    /mnt/homeassistant r,
+    /mnt/homeassistant/ r,
+
+    # Supervisor-controlled bind mounts. Exact root rules are intentionally
+    # separate from descendant rules: openat() opens each export root without a
+    # trailing slash. Mounts are statically RW because the UI can switch an
+    # export between RO and RW; Ganesha enforces the selected client mode.
+    /mnt/homeassistant/config r,
+    /mnt/homeassistant/config/ rw,
+    /mnt/homeassistant/config/** rwk,
+    /mnt/homeassistant/addon_configs r,
+    /mnt/homeassistant/addon_configs/ rw,
+    /mnt/homeassistant/addon_configs/** rwk,
+    /mnt/homeassistant/addons r,
+    /mnt/homeassistant/addons/ rw,
+    /mnt/homeassistant/addons/** rwk,
+    /mnt/homeassistant/ssl r,
+    /mnt/homeassistant/ssl/ rw,
+    /mnt/homeassistant/ssl/** rwk,
+    /mnt/homeassistant/backup r,
+    /mnt/homeassistant/backup/ rw,
+    /mnt/homeassistant/backup/** rwk,
+    /mnt/homeassistant/share r,
+    /mnt/homeassistant/share/ rw,
+    /mnt/homeassistant/share/** rwk,
+    /mnt/homeassistant/media r,
+    /mnt/homeassistant/media/ rw,
+    /mnt/homeassistant/media/** rwk,
+  }
+}

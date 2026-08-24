@@ -1,0 +1,23 @@
+{
+  "allowed_clients": ["192.168.20.12", "192.168.30.0/24"],
+  "exports": {
+    "config": {"enabled": true, "access": "rw"},
+    "addon_configs": {"enabled": true, "access": "ro"},
+    "addons": {"enabled": false, "access": "rw"},
+    "ssl": {"enabled": false, "access": "ro"},
+    "backup": {"enabled": false, "access": "ro"},
+    "share": {"enabled": false, "access": "rw"},
+    "media": {"enabled": false, "access": "rw"}
+  },
+  "identity": {
+    "squash": "root_squash",
+    "anonymous_uid": 65534,
+    "anonymous_gid": 65534
+  },
+  "advanced": {
+    "nfs_minor_versions": [1, 2],
+    "lease_lifetime": 60,
+    "grace_period": 90
+  },
+  "log_level": "info"
+}

@@ -1,0 +1,109 @@
+configuration:
+  allowed_clients:
+    name: Erlaubte Clients
+    description: Verpflichtende Positivliste einzelner IPv4-Adressen oder IPv4-CIDR-Netze. Bei leerer oder ungültiger Liste verweigert die App den Start.
+  exports:
+    name: Freigaben
+    description: Nur benötigte Home-Assistant-Verzeichnisse aktivieren und sichtbaren Nur-Lese- oder Schreibzugriff wählen.
+    fields:
+      config:
+        name: Home Assistant Config (/config)
+        description: Home-Assistant-Konfiguration. Statisch schreibbar eingebunden, aber nur bei Aktivierung exportiert.
+        fields:
+          enabled:
+            name: Aktiviert
+            description: Diesen Pfad im NFSv4-Pseudo-Dateisystem veröffentlichen.
+          access:
+            name: Zugriff
+            description: Nur Lesen (ro) oder Lesen/Schreiben (rw) für erlaubte Clients.
+      addon_configs:
+        name: App-Konfigurationen (/addon_configs)
+        description: Konfigurationsdaten aller installierten Apps. Statisch schreibbar eingebunden, aber nur bei Aktivierung exportiert.
+        fields:
+          enabled:
+            name: Aktiviert
+            description: Diesen Pfad im NFSv4-Pseudo-Dateisystem veröffentlichen.
+          access:
+            name: Zugriff
+            description: Nur Lesen (ro) oder Lesen/Schreiben (rw) für erlaubte Clients.
+      addons:
+        name: Lokale Apps (/addons)
+        description: Lokal installierte Apps. Deaktiviert lassen, sofern Fernänderungen nicht wirklich nötig sind.
+        fields:
+          enabled:
+            name: Aktiviert
+            description: Diesen Pfad im NFSv4-Pseudo-Dateisystem veröffentlichen.
+          access:
+            name: Zugriff
+            description: Nur Lesen (ro) oder Lesen/Schreiben (rw) für erlaubte Clients.
+      ssl:
+        name: SSL (/ssl)
+        description: Zertifikate und private Schlüssel. Sicherer Standard ist deaktiviert und nur lesbar.
+        fields:
+          enabled:
+            name: Aktiviert
+            description: Diesen sensiblen Pfad im NFSv4-Pseudo-Dateisystem veröffentlichen.
+          access:
+            name: Zugriff
+            description: Nur Lesen (ro) bevorzugen; Lesen/Schreiben (rw) erhöht das Risiko.
+      backup:
+        name: Backups (/backup)
+        description: Home-Assistant-Backups. Sicherer Standard ist deaktiviert und nur lesbar.
+        fields:
+          enabled:
+            name: Aktiviert
+            description: Diesen sensiblen Pfad im NFSv4-Pseudo-Dateisystem veröffentlichen.
+          access:
+            name: Zugriff
+            description: Nur Lesen (ro) bevorzugen; rw erlaubt Löschen und Verändern von Backups.
+      share:
+        name: Share (/share)
+        description: Gemeinsam verwendete App-Daten.
+        fields:
+          enabled:
+            name: Aktiviert
+            description: Diesen Pfad im NFSv4-Pseudo-Dateisystem veröffentlichen.
+          access:
+            name: Zugriff
+            description: Nur Lesen (ro) oder Lesen/Schreiben (rw) für erlaubte Clients.
+      media:
+        name: Medien (/media)
+        description: Lokale Mediendateien.
+        fields:
+          enabled:
+            name: Aktiviert
+            description: Diesen Pfad im NFSv4-Pseudo-Dateisystem veröffentlichen.
+          access:
+            name: Zugriff
+            description: Nur Lesen (ro) oder Lesen/Schreiben (rw) für erlaubte Clients.
+  identity:
+    name: Identität und Squashing (Sicherheit)
+    description: AUTH_SYS vertraut numerischen IDs des Clients. Root Squash ist der empfohlene Standard; No Root Squash lässt Client-root als Server-root handeln.
+    fields:
+      squash:
+        name: Squash-Richtlinie
+        description: Standardmäßig root_squash verwenden. all_squash bildet alle Benutzer auf die anonyme ID ab. no_root_squash ist ausdrücklich gefährlich.
+      anonymous_uid:
+        name: Anonyme UID
+        description: Numerische UID für abgebildete Identitäten. UID 0 ist absichtlich verboten.
+      anonymous_gid:
+        name: Anonyme GID
+        description: Numerische GID für abgebildete Identitäten. GID 0 ist absichtlich verboten.
+  advanced:
+    name: Erweiterte NFSv4-Einstellungen
+    description: Konservative Protokollzeiten und Steuerung der NFSv4-Nebenversionen.
+    fields:
+      nfs_minor_versions:
+        name: NFSv4-Nebenversionen
+        description: Unterstützte Nebenversionen. Standard sind NFSv4.1 und NFSv4.2; NFSv4.0 ist absichtlich nicht verfügbar.
+      lease_lifetime:
+        name: Lease-Laufzeit
+        description: NFSv4-Lease-Laufzeit in Sekunden (10–120).
+      grace_period:
+        name: Grace Period
+        description: Wiederherstellungsfrist nach Serverneustart in Sekunden (0–180).
+  log_level:
+    name: Log-Level
+    description: Ganesha-Protokollierungsstufe. Debug kann zusätzliche Dateisystem-Metadaten zeigen und beeinträchtigt die Leistung.
+network:
+  2049/tcp: NFSv4 über TCP; nur in einem vertrauenswürdigen LAN oder Storage-VLAN freigeben

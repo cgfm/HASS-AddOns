@@ -1,0 +1,113 @@
+name: Secure NFSv4 Server
+version: "1.0.5"
+slug: nfs_server
+description: Least-privilege NFSv4 server for selected Home Assistant directories
+url: https://github.com/cgfm/HASS-AddOns/tree/master/NFS-Ganesha-App/nfs_server
+arch:
+  - amd64
+  - aarch64
+stage: stable
+startup: services
+boot: auto
+init: false
+backup: cold
+apparmor: true
+privileged:
+  - DAC_READ_SEARCH
+ports:
+  2049/tcp: 2049
+ports_description:
+  2049/tcp: NFSv4 over TCP
+map:
+  - type: homeassistant_config
+    read_only: false
+    path: /mnt/homeassistant/config
+  - type: all_addon_configs
+    read_only: false
+    path: /mnt/homeassistant/addon_configs
+  - type: addons
+    read_only: false
+    path: /mnt/homeassistant/addons
+  - type: ssl
+    read_only: false
+    path: /mnt/homeassistant/ssl
+  - type: backup
+    read_only: false
+    path: /mnt/homeassistant/backup
+  - type: share
+    read_only: false
+    path: /mnt/homeassistant/share
+  - type: media
+    read_only: false
+    path: /mnt/homeassistant/media
+options:
+  allowed_clients: []
+  exports:
+    config:
+      enabled: true
+      access: rw
+    addon_configs:
+      enabled: true
+      access: rw
+    addons:
+      enabled: false
+      access: rw
+    ssl:
+      enabled: false
+      access: ro
+    backup:
+      enabled: false
+      access: ro
+    share:
+      enabled: false
+      access: rw
+    media:
+      enabled: false
+      access: rw
+  identity:
+    squash: root_squash
+    anonymous_uid: 65534
+    anonymous_gid: 65534
+  advanced:
+    nfs_minor_versions:
+      - 1
+      - 2
+    lease_lifetime: 60
+    grace_period: 90
+  log_level: info
+schema:
+  allowed_clients:
+    - str
+  exports:
+    config:
+      enabled: bool
+      access: list(ro|rw)
+    addon_configs:
+      enabled: bool
+      access: list(ro|rw)
+    addons:
+      enabled: bool
+      access: list(ro|rw)
+    ssl:
+      enabled: bool
+      access: list(ro|rw)
+    backup:
+      enabled: bool
+      access: list(ro|rw)
+    share:
+      enabled: bool
+      access: list(ro|rw)
+    media:
+      enabled: bool
+      access: list(ro|rw)
+  identity:
+    squash: list(root_squash|all_squash|no_root_squash)
+    anonymous_uid: "int(1,2147483647)"
+    anonymous_gid: "int(1,2147483647)"
+  advanced:
+    nfs_minor_versions:
+      - "int(1,2)"
+    lease_lifetime: "int(10,120)"
+    grace_period: "int(0,180)"
+  log_level: list(error|warning|info|debug)
+watchdog: tcp://[HOST]:[PORT:2049]

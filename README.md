@@ -24,6 +24,7 @@ Here are the add-ons currently available in this repository:
 *   **Unbound**: A validating, recursive, and caching DNS resolver.
 *   **WG-Easy**: A simple WireGuard VPN manager with a web UI.
 *   **Komodo Core**: (Under development)
+*   **Secure NFSv4 Server**: A least-privilege NFS-Ganesha App for exporting selected Home Assistant directories over NFSv4/TCP.
 
 ## 🤝 Contributing
 
