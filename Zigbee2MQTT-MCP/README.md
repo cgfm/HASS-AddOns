@@ -2,14 +2,16 @@
 
 [![Open your Home Assistant instance and show the add add-on repository dialog with a specific repository URL pre-filled.](https://my.home-assistant.io/badges/supervisor_add_addon_repository.svg)](https://my.home-assistant.io/redirect/supervisor_add_addon_repository/?repository_url=https%3A%2F%2Fgithub.com%2Fcgfm%2FHASS-AddOns)
 
-MCP Server that connects AI assistants (like Claude) to ZigBee2MQTT via MQTT for
-ZigBee device discovery and control.
+MCP server that connects AI assistants to Zigbee2MQTT via MQTT for device
+discovery, control, and bridge management.
 
 ## About
 
-This add-on wraps [MCP2ZigBee2MQTT](https://github.com/ichbinder/MCP2ZigBee2MQTT)
-as a Home Assistant add-on. It provides a Model Context Protocol (MCP) interface
-that AI assistants can use to interact with your ZigBee devices through ZigBee2MQTT.
+This directory is the thin Home Assistant catalog entry for the maintained
+[Zigbee2MQTT-MCP](https://github.com/cgfm/Zigbee2MQTT-MCP) project. Home
+Assistant and regular Docker installations use the same published image. The
+existing `mcp2zigbee2mqtt` add-on identity and configuration remain compatible
+with earlier catalog releases.
 
 ## Features
 
@@ -19,6 +21,9 @@ that AI assistants can use to interact with your ZigBee devices through ZigBee2M
 - Streamable HTTP transport at `/mcp` (legacy SSE remains available)
 - Strict Bearer-token authentication, optional TLS, Origin checks, and session limits
 - Manage groups, bindings, joining, OTA checks, network maps, and bridge health
+
+Docker, Docker Compose, local-development, and MCP-client instructions live in
+the [standalone project documentation](https://github.com/cgfm/Zigbee2MQTT-MCP#readme).
 
 ## Prerequisites
 

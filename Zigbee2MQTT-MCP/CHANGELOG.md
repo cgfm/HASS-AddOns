@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.2.0
+
+- Move the maintained implementation to the standalone
+  [Zigbee2MQTT-MCP repository](https://github.com/cgfm/Zigbee2MQTT-MCP)
+- Use the same published multi-architecture image for Home Assistant and Docker
+- Preserve the existing `mcp2zigbee2mqtt` slug, configuration names, defaults,
+  port, and data directory for update compatibility
+- Remove the embedded upstream build, local patches, and Bashio/s6 runtime wrapper
+
 ## 1.1.1
 
 - Rename the displayed add-on from MCP2ZigBee2MQTT to Zigbee2MQTT-MCP
