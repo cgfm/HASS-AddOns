@@ -2,6 +2,8 @@
 
 This add-on exposes Zigbee2MQTT through the Model Context Protocol (MCP). It discovers devices from retained MQTT messages, stores their schemas and current state locally, and sends control or administration requests through Zigbee2MQTT's documented MQTT API.
 
+Since version 1.2.0 the implementation and container image are maintained in the standalone [Zigbee2MQTT-MCP repository](https://github.com/cgfm/Zigbee2MQTT-MCP). Existing installations keep the same `mcp2zigbee2mqtt` add-on identity, options, defaults, port, and data directory. No configuration migration is required.
+
 ## Configuration
 
 - `mqtt_broker_url`, `mqtt_username`, `mqtt_password`: MQTT connection settings. The Mosquitto add-on normally uses `mqtt://core-mosquitto:1883`.
@@ -59,3 +61,5 @@ Administrative calls include a transaction ID and wait for Zigbee2MQTT's matchin
 - `403 Origin not allowed`: Add the exact scheme, hostname, and port to `allowed_origins`; do not use a wildcard.
 - `503 Session limit reached`: Close stale clients or increase `max_sessions` cautiously.
 - MQTT request timeout: Check the Zigbee2MQTT log and ensure its `base_topic` matches this add-on.
+
+For regular Docker and Docker Compose usage, see the [standalone project documentation](https://github.com/cgfm/Zigbee2MQTT-MCP#readme).
